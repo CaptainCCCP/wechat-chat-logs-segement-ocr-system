@@ -35,7 +35,7 @@ def PredictImg( image, model,device):
     dst=img.copy()
     img=toTensor(img)
 
-    names = {'0': 'background', '1': 'person'}
+    names = {'0': 'background', '1': 'user', '2': 'chat'}
     # put the model in evaluati
     # on mode
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     save = torch.load("maskrcnn-test\FQmodel.pth")
     model.load_state_dict(save)
     start_time = time.time()
-    PredictImg('maskrcnn-test\pho.jpeg',model,device)
+    PredictImg('maskrcnn-test/test.jpeg',model,device)
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
