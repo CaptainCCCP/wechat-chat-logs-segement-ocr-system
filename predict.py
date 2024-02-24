@@ -47,7 +47,7 @@ def PredictImg(image, model, device):
     regions = []
 
     for idx in range(boxes.shape[0]):
-        if scores[idx] >= 0.3:
+        if scores[idx] >= 0.32:
             m_bOK = True
             color = random_color()
             mask = masks[idx, 0].mul(255).byte().cpu().numpy()
@@ -55,16 +55,19 @@ def PredictImg(image, model, device):
             contours, hierarchy = cv2.findContours(
                 thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
             )
-            cv2.drawContours(dst, contours, -1, color, -1)
+            # cv2.drawContours(dst, contours, -1, color, -1)
 
             x1, y1, x2, y2 = boxes[idx][0], boxes[idx][1], boxes[idx][2], boxes[idx][3]
             name = names.get(str(labels[idx].item()))
-            cv2.rectangle(result, ((int(x1), int(y1))), ((int(x2), int(y2))), color, thickness=2)
-            cv2.putText(result, text=name, org=(int(x1), int(y1 + 10)), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=0.5, thickness=1, lineType=cv2.LINE_AA, color=color)
+            # cv2.rectangle(result, ((int(x1), int(y1))), ((int(x2), int(y2))), color, thickness=2)
+            # cv2.putText(result, text=name, org=(int(x1), int(y1 + 10)), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+            #             fontScale=0.5, thickness=1, lineType=cv2.LINE_AA, color=color)
 
             dst1 = cv2.addWeighted(result, 0.7, dst, 0.5, 0)
+            image_width = dst1.shape[1]
 
+            x1 = max(0, x1 - 50)
+            x2 = min(image_width, x2 + 50)
             region = dst1[int(y1):int(y2), int(x1):int(x2)]
             regions.append((region, (x1, y1, x2, y2)))
 
@@ -92,14 +95,17 @@ def PredictImg(image, model, device):
 
             if not overlapping:
                 non_overlapping_regions.append(regions[i])
-
+        
         for i, (region, _) in enumerate(non_overlapping_regions):
+            # if region is None or region.size == 0:
+            #     continue
             cv2.imwrite(f'maskrcnn-test/generated/region_{i}.jpg', region)
 
     cv2.namedWindow('result', 0)
     cv2.imshow('result', dst1)
     cv2.waitKey()
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
